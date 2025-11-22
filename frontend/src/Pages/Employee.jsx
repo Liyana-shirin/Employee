@@ -1,160 +1,237 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios"; // Correct import
-import Form from "./Form";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import EmployeeForm from "./Form.jsx";
 
-const EmployeeManagement = () => {
+const API_BASE = "http://localhost:5000/api/employees";
+
+export default function EmployeePage() {
   const [employees, setEmployees] = useState([]);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    email: "",
+    phone: "",
+    designation: "",
+    salary: "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [loadingForm, setLoadingForm] = useState(false);
+  const [errorForm, setErrorForm] = useState("");
+  const [loadingList, setLoadingList] = useState(false);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoadingList(true);
+      const res = await axios.get(`${API_BASE}/list`);
+      setEmployees(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+    } finally {
+      setLoadingList(false);
+    }
+  };
 
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  const fetchEmployees = async () => {
+  
+  const handleSubmit = async () => {
+    setErrorForm("");
+    setLoadingForm(true);
+
     try {
-      setLoading(true);
-      const response = await axios.get("http://localhost:5000/api/employees");
-      setEmployees(response.data.data);
-    } catch (error) {
-      setMessage("Error fetching employees");
-      console.error("Error:", error);
+      if (isEditing && editingId) {
+
+        const res = await axios.patch(`${API_BASE}/update/${editingId}`, formData);
+        const updated = res.data.data;
+
+        setEmployees((prev) =>
+          prev.map((emp) => (emp._id === editingId ? updated : emp))
+        );
+      } else {
+        const res = await axios.post(`${API_BASE}/create`, formData);
+        const created = res.data.data;
+
+        setEmployees((prev) => [created, ...prev]);
+      }
+
+      setFormData({
+        name: "",
+        age: "",
+        gender: "",
+        email: "",
+        phone: "",
+        designation: "",
+        salary: "",
+      });
+      setIsEditing(false);
+      setEditingId(null);
+    } catch (err) {
+      if (err.response?.data?.message) {
+        setErrorForm(err.response.data.message);
+      } else {
+        setErrorForm("Something went wrong. Please try again.");
+      }
     } finally {
-      setLoading(false);
+      setLoadingForm(false);
     }
   };
 
-  const handleEmployeeAdded = () => {
-    setMessage("Employee added successfully!");
-    fetchEmployees();
-    setTimeout(() => setMessage(""), 3000);
+  const handleEdit = (emp) => {
+    setFormData({
+      name: emp.name || "",
+      age: emp.age || "",
+      gender: emp.gender || "",
+      email: emp.email || "",
+      phone: emp.phone || "",
+      designation: emp.designation || "",
+      salary: emp.salary || "",
+    });
+    setIsEditing(true);
+    setEditingId(emp._id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingId(null);
+    setErrorForm("");
+    setFormData({
+      name: "",
+      age: "",
+      gender: "",
+      email: "",
+      phone: "",
+      designation: "",
+      salary: "",
+    });
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      try {
-        await axios.delete(`http://localhost:5000/api/employees/${id}`);
-        setMessage("Employee deleted successfully!");
-        fetchEmployees();
-        setTimeout(() => setMessage(""), 3000);
-      } catch (error) {
-        setMessage("Error deleting employee");
-        console.error("Error:", error);
-      }
+    const confirm = window.confirm("Are you sure you want to delete this employee?");
+    if (!confirm) return;
+
+    try {
+      await axios.delete(`${API_BASE}/delete/${id}`);
+      setEmployees((prev) => prev.filter((emp) => emp._id !== id));
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      alert("Failed to delete employee");
     }
   };
 
+  const filteredEmployees = employees.filter((emp) => {
+    const q = search.toLowerCase();
+    return (
+      emp.name?.toLowerCase().includes(q) ||
+      emp.email?.toLowerCase().includes(q) ||
+      emp.designation?.toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Employee Management System
-          </h1>
-          <p className="text-gray-600">
-            Add, view, and delete employee records
-          </p>
-        </div>
+    <div className="w-full max-w-6xl mx-auto py-10 px-4">
+      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-blue-400 text-center">
+        Employee Management System
+      </h1>
 
-        {message && (
-          <div
-            className={`mb-6 p-4 rounded-lg text-center font-medium ${
-              message.includes("Error")
-                ? "bg-red-100 text-red-700 border border-red-300"
-                : "bg-green-100 text-green-700 border border-green-300"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+      <EmployeeForm
+        formData={formData}
+        onChange={setFormData}
+        onSubmit={handleSubmit}
+        onCancel={handleCancelEdit}
+        isEditing={isEditing}
+        loading={loadingForm}
+        error={errorForm}
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <Form onEmployeeAdded={handleEmployeeAdded} />
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-9">
+        <input
+          type="text"
+          placeholder="Search by name, email, or designation..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full md:w-200  border rounded-lg px-3 py-3 text-sm outline-none focus:ring-2 
+          focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <p className="text-sm text-gray-600">
+          Total Employees: <span className="font-semibold">{employees.length}</span>
+        </p>
+      </div>
 
-          <div className="bg-white shadow-xl rounded-2xl p-6 border border-gray-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Employee List
-              </h2>
-              <button
-                onClick={fetchEmployees}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-medium"
-              >
-                Refresh
-              </button>
-            </div>
+      <div className="bg-white shadow-md rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-70 border-b">
+              <tr>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Sl.No</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Name</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Email</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700"> Designation</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Salary</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
 
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Loading employees...</p>
-              </div>
-            ) : employees.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No employees found. Add some employees to get started.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 border-b">
-                      <th className="py-3 px-4 text-left text-gray-700 font-medium">
-                        ID
-                      </th>
-                      <th className="py-3 px-4 text-left text-gray-700 font-medium">
-                        Name
-                      </th>
-                      <th className="py-3 px-4 text-left text-gray-700 font-medium">
-                        Designation
-                      </th>
-                      <th className="py-3 px-4 text-left text-gray-700 font-medium">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map((employee) => (
-                      <tr
-                        key={employee._id}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="py-3 px-4 text-gray-600">
-                          {employee.employeeId}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <div className="font-medium text-gray-800">
-                              {employee.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {employee.email}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">
-                          {employee.designation}
-                        </td>
-                        <td className="py-3 px-4">
-                          <button
-                            onClick={() => handleDelete(employee._id)}
-                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+            <tbody>
+              {loadingList ? (
+                <tr>
+                  <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
+                    Loading employees...
+                  </td>
+                </tr>
+              ) : filteredEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
+                    No employees found.
+                  </td>
+                </tr>
+              ) : (
+                filteredEmployees.map((emp, index) => (
+                  <tr
+                    key={emp._id}
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <td className="px-4 py-2 align-top">{index + 1}</td>
+                    <td className="px-4 py-2 align-top">
+                      <div className="font-medium">{emp.name}</div>
+                      <div className="text-xs text-gray-500">
+                        Age: {emp.age} • {emp.gender}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 align-top">
+                      <div className="text-sm">{emp.email}</div>
+                      <div className="text-xs text-gray-500">{emp.phone}</div>
+                    </td>
+                    <td className="px-4 py-2 align-top">{emp.designation}</td>
+                    <td className="px-4 py-2 align-top">₹{emp.salary}</td>
+                    <td className="px-4 py-2 align-top">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleEdit(emp)}
+                          className="px-3 py-1 rounded-md text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(emp._id)}
+                          className="px-3 py-1 rounded-md text-xs bg-red-50 text-red-700 hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
-};
-
-export default EmployeeManagement;
+}

@@ -1,257 +1,145 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React from "react";
 
-export default function Form() {
-  const [form, setForm] = useState({
-    employeeId: "",
-    name: "",
-    age: "",
-    gender: "",
-    email: "",
-    phone: "",
-    designation: "",
-    salary: "",
-  });
-
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState("");
-
-  const validate = () => {
-    let temp = {};
-
-    if (!form.employeeId.trim())
-      temp.employeeId = "Employee ID is required";
-
-    if (!form.name.trim())
-      temp.name = "Name is required";
-
-    if (!form.age || form.age <= 0)
-      temp.age = "Enter a valid age";
-
-    if (!form.gender.trim())
-      temp.gender = "Gender is required";
-
-    if (!form.email)
-      temp.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email))
-      temp.email = "Enter a valid email";
-
-    if (!form.phone)
-      temp.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(form.phone))
-      temp.phone = "Phone must be 10 digits";
-
-    if (!form.designation.trim())
-      temp.designation = "Designation is required";
-
-    if (!form.salary || form.salary <= 0)
-      temp.salary = "Enter a valid salary";
-
-    setErrors(temp);
-    return Object.keys(temp).length === 0;
+export default function EmployeeForm({
+  formData,
+  onChange,
+  onSubmit,
+  onCancel,
+  isEditing,
+  loading,
+  error,
+}) {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    onChange({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!validate()) {
-      setMessage("Please fix the errors before submitting.");
-      return;
-    }
-
-    try {
-      await axios.post("http://localhost:5000/api/employees", form);
-      setMessage("Employee added successfully!");
-
-      setForm({
-        employeeId: "",
-        name: "",
-        age: "",
-        gender: "",
-        email: "",
-        phone: "",
-        designation: "",
-        salary: "",
-      });
-
-      setErrors({});
-      setTimeout(() => setMessage(""), 2500);
-    } catch (err) {
-      console.error("Error:", err);
-      setMessage("Error while adding employee");
-    }
+    onSubmit();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  bg-gray-100 p-6">
+    <div className="bg-white shadow-md rounded-xl p-6 mb-8">
+      <h2 className="text-xl font-semibold mb-4">
+        {isEditing ? "Edit Employee" : "Add Employee"}
+      </h2>
 
-      <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
+      {error && (
+        <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
-        <h1 className="text-3xl font-semibold text-center mb-6 text-gray-800">
-          Add Employee
-        </h1>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        {message && (
-          <p className="mb-4 text-center font-medium text-blue-600">
-            {message}
-          </p>
-        )}
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Age</label>
+          <input
+            type="number"
+            name="age"
+            value={formData.age || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Employee ID
-            </label>
-            <input
-              type="text"
-              placeholder="enter your id"
-              className="p-3 border rounded-lg w-full"
-              value={form.employeeId}
-              onChange={(e) =>
-                setForm({ ...form, employeeId: e.target.value })
-              }
-            />
-            {errors.employeeId && (
-              <p className="text-red-500 text-sm mt-1">{errors.employeeId}</p>
-            )}
-          </div>
+        {/* Gender */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Gender</label>
+          <select
+            name="gender"
+            value={formData.gender || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+          >
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              placeholder=" Name"
-              className="p-3 border rounded-lg w-full"
-              value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
-              }
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Age
-            </label>
-            <input
-              type="number"
-              placeholder="Age"
-              className="p-3 border rounded-lg w-full"
-              value={form.age}
-              onChange={(e) =>
-                setForm({ ...form, age: e.target.value })
-              }
-            />
-            {errors.age && (
-              <p className="text-red-500 text-sm mt-1">{errors.age}</p>
-            )}
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Phone</label>
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Gender
-            </label>
-            <input
-              type="text"
-              placeholder="Gender"
-              className="p-3 border rounded-lg w-full"
-              value={form.gender}
-              onChange={(e) =>
-                setForm({ ...form, gender: e.target.value })
-              }
-            />
-            {errors.gender && (
-              <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
-            )}
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Designation</label>
+          <input
+            type="text"
+            name="designation"
+            value={formData.designation || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Email"
-              className="p-3 border rounded-lg w-full"
-              value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Salary</label>
+          <input
+            type="number"
+            name="salary"
+            value={formData.salary || ""}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              placeholder="10-digit number"
-              className="p-3 border rounded-lg w-full"
-              value={form.phone}
-              onChange={(e) =>
-                setForm({ ...form, phone: e.target.value })
-              }
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Designation
-            </label>
-            <input
-              type="text"
-              placeholder="Designation"
-              className="p-3 border rounded-lg w-full"
-              value={form.designation}
-              onChange={(e) =>
-                setForm({ ...form, designation: e.target.value })
-              }
-            />
-            {errors.designation && (
-              <p className="text-red-500 text-sm mt-1">{errors.designation}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Salary
-            </label>
-            <input
-              type="number"
-              placeholder="Salary"
-              className="p-3 border rounded-lg w-full"
-              value={form.salary}
-              onChange={(e) =>
-                setForm({ ...form, salary: e.target.value })
-              }
-            />
-            {errors.salary && (
-              <p className="text-red-500 text-sm mt-1">{errors.salary}</p>
-            )}
-          </div>
-
+        <div className="md:col-span-2 flex gap-3 justify-end mt-2">
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 text-sm border rounded-lg text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 mt-3 rounded-lg hover:bg-blue-700 transition font-medium"
+            disabled={loading}
+            className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
           >
-            Submit
+            {loading ? "Saving..." : isEditing ? "Update Employee" : "Add Employee"}
           </button>
-        </form>
-
-      </div>
+        </div>
+      </form>
     </div>
   );
 }
