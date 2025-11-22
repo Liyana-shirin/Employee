@@ -134,8 +134,8 @@ export default function EmployeePage() {
   });
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-10 px-4">
-      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-blue-400 text-center">
+    <div className="w-full max-w-6xl mx-auto py-10 px-4 ">
+      <h1 className="text-4xl md:text-3xl font-bold mb-8 text-blue-400 text-center">
         Employee Management System
       </h1>
 
@@ -149,31 +149,45 @@ export default function EmployeePage() {
         error={errorForm}
       />
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-9">
-        <input
-          type="text"
-          placeholder="Search by name, email, or designation..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-200  border rounded-lg px-3 py-3 text-sm outline-none focus:ring-2 
-          focus:ring-indigo-500 focus:border-indigo-500"
-        />
-        <p className="text-sm text-gray-600">
-          Total Employees: <span className="font-semibold">{employees.length}</span>
-        </p>
-      </div>
+      <div className="flex flex-col gap-3 mb-9">
+
+  <h3 className="font-bold text-xl">Search Employee :</h3>
+
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+    <input
+      type="text"
+      placeholder="Search by name, email, or designation..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="w-full md:w-120 border rounded-lg px-3 py-3 bg-white text-sm outline-none 
+      focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+
+    <p className="text-sm text-gray-600">
+      Total Employees: <span className="font-semibold">{employees.length}</span>
+    </p>
+
+  </div>
+</div>
+
+        <h1 className="font-bold text-2xl mb-5">Employee list </h1>
 
       <div className="bg-white shadow-md rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-70 border-b">
+          <table className="min-w-full text-sm p-3">
+            <thead className="bg-white border-b ">
               <tr>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Sl.No</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Name</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Email</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700"> Designation</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Salary</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Actions</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Sl.No</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Name</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Age</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700"> Gender</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Email</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Phone</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">Designation</th>
+                <th className="px-4 py-2 text-left font-bold text-gray-700">salary</th>
+
+
               </tr>
             </thead>
 
@@ -191,42 +205,40 @@ export default function EmployeePage() {
                   </td>
                 </tr>
               ) : (
-                filteredEmployees.map((emp, index) => (
-                  <tr
-                    key={emp._id}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="px-4 py-2 align-top">{index + 1}</td>
-                    <td className="px-4 py-2 align-top">
-                      <div className="font-medium">{emp.name}</div>
-                      <div className="text-xs text-gray-500">
-                        Age: {emp.age} • {emp.gender}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2 align-top">
-                      <div className="text-sm">{emp.email}</div>
-                      <div className="text-xs text-gray-500">{emp.phone}</div>
-                    </td>
-                    <td className="px-4 py-2 align-top">{emp.designation}</td>
-                    <td className="px-4 py-2 align-top">₹{emp.salary}</td>
-                    <td className="px-4 py-2 align-top">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => handleEdit(emp)}
-                          className="px-3 py-1 rounded-md text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(emp._id)}
-                          className="px-3 py-1 rounded-md text-xs bg-red-50 text-red-700 hover:bg-red-100"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+               filteredEmployees.map((emp, index) => (
+  <tr
+    key={emp._id}
+    className={index % 3 === 0 ? "bg-white" : "bg-gray-50"}
+  >
+    <td className="px-4 py-2">{index + 1}</td>
+    <td className="px-4 py-2 font-bold">{emp.name}</td>
+    <td className="px-4 py-2">{emp.age}</td>
+    <td className="px-4 py-2">{emp.gender}</td>
+    <td className="px-4 py-2">{emp.email}</td>
+    <td className="px-4 py-2">{emp.phone}</td>
+    <td className="px-4 py-2">{emp.designation}</td>
+
+    <td className="px-4 py-2">₹{emp.salary}</td>
+
+    <td className="px-4 py-2">
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleEdit(emp)}
+          className="px-3 py-1 rounded-md text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => handleDelete(emp._id)}
+          className="px-3 py-1 rounded-md text-xs bg-red-50 text-red-700 hover:bg-red-100"
+        >
+          Delete
+        </button>
+      </div>
+    </td>
+  </tr>
+))
+
               )}
             </tbody>
           </table>
