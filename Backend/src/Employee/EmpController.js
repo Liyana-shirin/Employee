@@ -1,6 +1,5 @@
 import Employee from "../Employee/EmpModel.js";
 
-// CREATE EMPLOYEE
 export const createEmployee = async (req, res) => {
   try {
     const emp = await Employee.create(req.body);
@@ -17,7 +16,6 @@ export const createEmployee = async (req, res) => {
   }
 };
 
-// GET ALL EMPLOYEES
 export const getAllEmployees = async (req, res) => {
   try {
     const emp = await Employee.find().sort({ createdAt: -1 });
@@ -27,7 +25,6 @@ export const getAllEmployees = async (req, res) => {
   }
 };
 
-// GET EMPLOYEE BY ID
 export const getEmployeeById = async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id);
@@ -41,34 +38,6 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
-// UPDATE EMPLOYEE
-export const updateEmployee = async (req, res) => {
-  try {
-    const emp = await Employee.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
 
-    if (!emp)
-      return res.status(404).json({ success: false, message: "Employee not found" });
 
-    res.status(200).json({ success: true, message: "Employee updated", data: emp });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
 
-// DELETE EMPLOYEE
-export const deleteEmployee = async (req, res) => {
-  try {
-    const emp = await Employee.findByIdAndDelete(req.params.id);
-
-    if (!emp)
-      return res.status(404).json({ success: false, message: "Employee not found" });
-
-    res.status(200).json({ success: true, message: "Employee deleted" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};

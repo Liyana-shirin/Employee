@@ -57,7 +57,6 @@ export default function EmployeeForm({
           />
         </div>
 
-        {/* Gender */}
         <div>
           <label className="block text-sm font-medium mb-1">Gender</label>
           <select
